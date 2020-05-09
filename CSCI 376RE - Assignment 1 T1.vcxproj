@@ -144,8 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="task1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="task1.cl" />
