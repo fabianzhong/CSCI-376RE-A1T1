@@ -306,87 +306,6 @@ int main(void) {
 				std::cout << "Device - " << outputString << ", build log:" << std::endl;
 				std::cout << build_log << std::endl << "--------------------" << std::endl;
 			}
-
-			//Create kernels from the program and display all kernel names
-			std::vector<cl::Kernel> allKernels;		// container for all kernels
-			program.createKernels(&allKernels);
-			kernel = cl::Kernel(program, "add");
-
-			//Find and display num of kernels in the program
-			std::cout << "Total num of Kernels: " << allKernels.size() << std::endl;
-
-			std::cout << "--------------------" << std::endl;
-			std::cout << "Kernel Names" << std::endl;
-
-			// output kernel name for each index
-			for (i = 0; i < allKernels.size(); i++) {
-				outputString = allKernels[i].getInfo<CL_KERNEL_FUNCTION_NAME>();
-				std::cout << "Kernel " << i << ": " << outputString << std::endl;
-			}
-			std::cout << "--------------------" << std::endl;
-
-			//Command Queue
-			queue = cl::CommandQueue(context, device); //create command queue using context and device
-
-			//Create Buffers
-			floatBufferA = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * LENGTH
-				, &floatDataA[0]);
-			floatBufferB = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * LENGTH, &floatDataB[0]);
-			floatBufferC = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * LENGTH, &floatDataC[0]);
-
-			// enqueue command to write from host to device memory (host -> buffer -> device)
-			//transfer data from floatDataB to floatBufferB
-			//queue.enqueueWriteBuffer(floatBufferB, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatDataB[0]);
-
-			//Set Kernel Arguments
-			kernel.setArg(0, floatBufferA);
-			kernel.setArg(1, floatBufferC);
-			kernel.setArg(2, floatBufferB);
-
-			// enqueue kernel for execution
-			queue.enqueueTask(kernel);
-
-			std::cout << "Kernel enqueued." << std::endl;
-			std::cout << "--------------------" << std::endl;
-
-			// enqueue command to read from device to host memory (device -> buffer -> host)
-			queue.enqueueReadBuffer(floatBufferA, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
-
-			// output contents
-			std::cout << "\nContents of floatBufferA: " << std::endl;
-
-			for (int i = 0; i < floatOutput.size() / 10; i++) {
-				for (int j = 0; j < 10; j++) {
-					std::cout << floatOutput[j + i * 10] << "\t";
-				}
-				std::cout << std::endl;
-			}
-
-			// enqueue command to read from device to host memory (device -> buffer -> host)
-			queue.enqueueReadBuffer(floatBufferB, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
-
-			// output contents
-			std::cout << "\nContents of floatBufferB: " << std::endl;
-
-			for (int i = 0; i < floatOutput.size() / 10; i++) {
-				for (int j = 0; j < 10; j++) {
-					std::cout << floatOutput[j + i * 10] << "\t";
-				}
-				std::cout << std::endl;
-			}
-
-			// enqueue command to read from device to host memory (device -> buffer -> host)
-			queue.enqueueReadBuffer(floatBufferC, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
-
-			// output contents
-			std::cout << "\nContents of floatBufferC: " << std::endl;
-
-			for (int i = 0; i < floatOutput.size() / 10; i++) {
-				for (int j = 0; j < 10; j++) {
-					std::cout << floatOutput[j + i * 10] << "\t";
-				}
-				std::cout << std::endl;
-			}
 		}
 		catch (cl::Error e) {
 			// if failed to build program
@@ -411,6 +330,88 @@ int main(void) {
 				throw e;
 			}
 		}
+
+		//Create kernels from the program and display all kernel names
+		std::vector<cl::Kernel> allKernels;		// container for all kernels
+		program.createKernels(&allKernels);
+		kernel = cl::Kernel(program, "add");
+
+		//Find and display num of kernels in the program
+		std::cout << "Total num of Kernels: " << allKernels.size() << std::endl;
+
+		std::cout << "--------------------" << std::endl;
+		std::cout << "Kernel Names" << std::endl;
+
+		// output kernel name for each index
+		for (i = 0; i < allKernels.size(); i++) {
+			outputString = allKernels[i].getInfo<CL_KERNEL_FUNCTION_NAME>();
+			std::cout << "Kernel " << i << ": " << outputString << std::endl;
+		}
+		std::cout << "--------------------" << std::endl;
+
+		//Command Queue
+		queue = cl::CommandQueue(context, device); //create command queue using context and device
+
+		//Create Buffers
+		floatBufferA = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * LENGTH
+			, &floatDataA[0]);
+		floatBufferB = cl::Buffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * LENGTH, &floatDataB[0]);
+		floatBufferC = cl::Buffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * LENGTH, &floatDataC[0]);
+
+		// enqueue command to write from host to device memory (host -> buffer -> device)
+		//transfer data from floatDataB to floatBufferB
+		//queue.enqueueWriteBuffer(floatBufferB, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatDataB[0]);
+
+		//Set Kernel Arguments
+		kernel.setArg(0, floatBufferA);
+		kernel.setArg(1, floatBufferC);
+		kernel.setArg(2, floatBufferB);
+
+		// enqueue kernel for execution
+		queue.enqueueTask(kernel);
+
+		std::cout << "Kernel " << kernel.getInfo<CL_KERNEL_FUNCTION_NAME>() << " enqueued." << std::endl;
+		std::cout << "--------------------" << std::endl;
+
+		// enqueue command to read from device to host memory (device -> buffer -> host)
+		queue.enqueueReadBuffer(floatBufferA, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
+
+		// output contents
+		std::cout << "\nContents of floatBufferA: " << std::endl;
+
+		for (int i = 0; i < floatOutput.size() / 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				std::cout << floatOutput[j + i * 10] << "\t";
+			}
+			std::cout << std::endl;
+		}
+
+		// enqueue command to read from device to host memory (device -> buffer -> host)
+		queue.enqueueReadBuffer(floatBufferB, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
+
+		// output contents
+		std::cout << "\nContents of floatBufferB: " << std::endl;
+
+		for (int i = 0; i < floatOutput.size() / 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				std::cout << floatOutput[j + i * 10] << "\t";
+			}
+			std::cout << std::endl;
+		}
+
+		// enqueue command to read from device to host memory (device -> buffer -> host)
+		queue.enqueueReadBuffer(floatBufferC, CL_TRUE, 0, sizeof(cl_float) * LENGTH, &floatOutput[0]);
+
+		// output contents
+		std::cout << "\nContents of floatBufferC: " << std::endl;
+
+		for (int i = 0; i < floatOutput.size() / 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				std::cout << floatOutput[j + i * 10] << "\t";
+			}
+			std::cout << std::endl;
+		}
+
 	}
 	catch (cl::Error e) {		//catch any OpenCL function errors
 		//call function to handle errors
