@@ -134,10 +134,12 @@ bool select_one_device(cl::Platform* platfm, cl::Device* dev) //function to allo
 
 void displayDeviceInfo(cl::Platform plat, cl::Device dev) {
 	//Based on Choice Display
-	//Display Platform Information
+	//Display Device Information
+	/*
 	std::cout << "--------------------" << std::endl;
-	std::cout << "Platform Information" << std::endl;
+	std::cout << "Device Information" << std::endl;
 	std::cout << "--------------------" << std::endl;
+	*/
 
 	//Platform that support chosen device
 	// platform vendor name
@@ -151,12 +153,6 @@ void displayDeviceInfo(cl::Platform plat, cl::Device dev) {
 	std::cout << "Platform Name - ";
 	std::cout << outputString << std::endl;
 
-	std::cout << std::endl;
-
-	//Display Device Information
-	std::cout << "--------------------" << std::endl;
-	std::cout << "Device Information" << std::endl;
-	std::cout << "--------------------" << std::endl;
 	//Display Device Name (CL_DEVICE_NAME)
 	std::cout << "Device Name - ";
 	std::cout << dev.getInfo<CL_DEVICE_NAME>() << std::endl;
@@ -213,6 +209,183 @@ void displayDeviceInfo(cl::Platform plat, cl::Device dev) {
 	std::cout << outputLong << std::endl;
 }
 
+bool select_CPU_GPU(cl::Platform* platfm, cl::Device* dev) //function to allow user to choose device
+{
+	std::vector<cl::Platform> platforms;	// available platforms
+	std::vector< std::vector<cl::Device> > platformDevices;	// devices available for each platform
+	std::vector<cl::Device> devicesType; //devices store of specific type
+	std::string outputString;				// string for output
+	unsigned int i, j;								// counters
+	unsigned int optionCounter = 0;	// option counter
+	unsigned int selectedOption;	// option that was selected
+
+	try {
+		// get the number of available OpenCL platforms
+		cl::Platform::get(&platforms);
+
+		//Display Options
+		std::cout << "Select a Device Type (CPU or GPU)" << std::endl;
+		std::cout << "--------------------" << std::endl;
+		std::cout << "Option " << 0 << ": CPU" << std::endl;
+		std::cout << "Option " << 1 << ": GPU" << std::endl;
+		std::cout << "--------------------" << std::endl;
+		std::cout << "Select a device type: ";
+
+
+		std::string inputString;
+
+		std::getline(std::cin, inputString);
+		std::istringstream stringStream(inputString);
+
+		// check whether valid option was selected
+		// check if input was an integer
+		if (stringStream >> selectedOption)
+		{
+			char c;
+
+			// check if there was anything after the integer
+			if (!(stringStream >> c))
+			{
+				// check if valid option range
+				if (selectedOption >= 0 && selectedOption < 2)
+				{
+					// find and store the devices available to each platform
+					//Search the system for all CPU or GPU devices for all available platform
+					for (i = 0; i < platforms.size(); i++)
+					{
+						std::vector<cl::Device> devices;		// available devices
+
+						// get all devices available to the platform
+						platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
+
+						platformDevices.push_back(devices);
+					}
+
+					for (i = 0; i < platforms.size(); i++)
+					{
+						// for all devices per platform
+						for (j = 0; j < platformDevices[i].size(); j++) {
+							if (selectedOption == 0) {
+								if (platformDevices[i][j].getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_CPU) {
+									devicesType.push_back(platformDevices[i][j]);
+									/*
+									outputString = platforms[i].getInfo<CL_PLATFORM_NAME>();
+									std::cout << "Platform Name - ";
+									std::cout << outputString << std::endl;
+
+									std::cout << "Device Name - ";
+									std::cout << platformDevices[i][j].getInfo<CL_DEVICE_NAME>() << std::endl;
+
+									std::cout << "Transferred" << std::endl;
+									*/
+								}
+							}
+							else if (selectedOption == 1) {
+								if (platformDevices[i][j].getInfo<CL_DEVICE_TYPE>() == CL_DEVICE_TYPE_GPU) {
+									devicesType.push_back(platformDevices[i][j]);
+
+									outputString = platforms[i].getInfo<CL_PLATFORM_NAME>();
+									std::cout << "Platform Name - ";
+									std::cout << outputString << std::endl;
+
+									std::cout << "Device Name - ";
+									std::cout << platformDevices[i][j].getInfo<CL_DEVICE_NAME>() << std::endl;
+
+									std::cout << "Transferred" << std::endl;
+								}
+							}
+						}
+					}
+
+					// display available platforms and devices
+					// store options as platform and device indices
+					optionCounter = 0;	// option counter
+
+						//for all devices in device type vector
+					for (j = 0; j < devicesType.size(); j++)
+					{
+						// display options
+						//device type
+						std::cout << "--------------------" << std::endl;
+						std::cout << "Device " << optionCounter << ": " << std::endl;
+						displayDeviceInfo(devicesType[j].getInfo<CL_DEVICE_PLATFORM>(), devicesType[j]);
+						optionCounter++; // increment option counter
+					}
+
+					std::cout << "--------------------" << std::endl;
+					std::cout << "Device options" << std::endl;
+					std::cout << "--------------------" << std::endl;
+
+					// store options as platform and device indices
+					std::vector< std::pair<int, int> > options;
+					optionCounter = 0;	// option counter
+
+			// for all devices
+					for (j = 0; j < devicesType.size(); j++)
+					{
+						// display options
+						std::cout << "Option " << optionCounter << ": Platform - ";
+
+						// platform vendor name
+						outputString = cl::Platform(devicesType[j].getInfo<CL_DEVICE_PLATFORM>()).getInfo<CL_PLATFORM_VENDOR>();
+						std::cout << outputString << ", Device - ";
+
+						// device name
+						outputString = devicesType[j].getInfo<CL_DEVICE_NAME>();
+						std::cout << outputString << std::endl;
+
+						// store option
+						optionCounter++; // increment option counter
+					}
+
+
+					std::cout << "--------------------" << std::endl;
+					std::cout << "Select a device: ";
+
+					std::getline(std::cin, inputString);
+					stringStream.clear();
+					stringStream.str(inputString);
+
+					// check whether valid option selected
+					// check if input was an integer
+					if (stringStream >> selectedOption)
+					{
+						char c;
+
+						// check if there was anything after the integer
+						if (!(stringStream >> c))
+						{
+							// check if valid option range
+							if (selectedOption >= 0 && selectedOption < optionCounter)
+							{
+								// return the platform and device
+								*platfm = cl::Platform(devicesType[selectedOption].getInfo<CL_DEVICE_PLATFORM>());
+								*dev = devicesType[selectedOption];
+
+								return true;
+							}
+						}
+					}
+					// if invalid option selected
+					std::cout << "\n--------------------" << std::endl;
+					std::cout << "Invalid option." << std::endl;
+				} //selected option end
+			}
+		}
+		// if invalid option selected
+		std::cout << "\n--------------------" << std::endl;
+		std::cout << "Invalid option." << std::endl;
+
+	}
+	// catch any OpenCL function errors
+	catch (cl::Error e) {
+		// call function to handle errors
+		handle_error(e);
+	}
+
+	return false;
+}
+
 int main(void) {
 	cl::Platform platform;		//device's platform
 	cl::Device device;			//device used
@@ -242,8 +415,10 @@ int main(void) {
 	cl::Buffer floatBufferC;
 
 	try {
+
+
 		//call function for user to select OpenCL device
-		if (!select_one_device(&platform, &device)) {	//function will return false if no device selected
+		if (!select_CPU_GPU(&platform, &device)) {	//function will return false if no device selected
 			quit_program("Device not selected");		//quit program if no device selected
 		}
 
